@@ -1,0 +1,210 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Split Bill & Tip Calculator</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app-wrapper">
+    <!-- App Header -->
+    <header class="app-header">
+      <div class="brand">
+        <div class="brand-icon">💸</div>
+        <div class="brand-text">
+          <h1>SplitSmart</h1>
+          <p>Instant Split Bill & Fair Penny Calculator</p>
+        </div>
+      </div>
+      <div class="currency-picker">
+        <label for="currencySelect">Currency:</label>
+        <select id="currencySelect">
+          <option value="$" selected>USD ($)</option>
+          <option value="₹">INR (₹)</option>
+          <option value="€">EUR (€)</option>
+          <option value="£">GBP (£)</option>
+          <option value="C$">CAD (C$)</option>
+          <option value="A$">AUD (A$)</option>
+        </select>
+      </div>
+    </header>
+
+    <!-- Main Content Grid -->
+    <main class="calculator-grid">
+      <!-- Left Column: Inputs -->
+      <section class="card input-card">
+        <h2 class="card-title">Bill Details</h2>
+
+        <!-- Bill Subtotal Input -->
+        <div class="input-group">
+          <div class="input-label-row">
+            <label for="billAmount">Bill Subtotal</label>
+            <span class="hint">Pre-tax & pre-tip</span>
+          </div>
+          <div class="input-field-wrapper currency-field">
+            <span class="currency-symbol" id="billCurrencySymbol">$</span>
+            <input type="number" id="billAmount" min="0" step="0.01" placeholder="0.00" value="100.00">
+            <button type="button" class="btn-clear" id="clearBillBtn" title="Clear amount">&times;</button>
+          </div>
+        </div>
+
+        <!-- Tip Percentage Input & Slider -->
+        <div class="input-group">
+          <div class="input-label-row">
+            <label for="tipInput">Tip Percentage</label>
+            <div class="sync-input-wrapper">
+              <input type="number" id="tipInput" min="0" max="100" step="0.5" value="15">
+              <span class="input-suffix">%</span>
+            </div>
+          </div>
+          <div class="slider-wrapper">
+            <input type="range" id="tipSlider" min="0" max="50" step="1" value="15" class="custom-slider">
+          </div>
+          <div class="chips-row" id="tipChips">
+            <button type="button" class="chip" data-tip="0">0%</button>
+            <button type="button" class="chip" data-tip="10">10%</button>
+            <button type="button" class="chip active" data-tip="15">15%</button>
+            <button type="button" class="chip" data-tip="18">18%</button>
+            <button type="button" class="chip" data-tip="20">20%</button>
+            <button type="button" class="chip" data-tip="25">25%</button>
+          </div>
+        </div>
+
+        <!-- Tax Percentage Input & Slider -->
+        <div class="input-group">
+          <div class="input-label-row">
+            <label for="taxInput">Tax Percentage</label>
+            <div class="sync-input-wrapper">
+              <input type="number" id="taxInput" min="0" max="100" step="0.1" value="8.5">
+              <span class="input-suffix">%</span>
+            </div>
+          </div>
+          <div class="slider-wrapper">
+            <input type="range" id="taxSlider" min="0" max="30" step="0.5" value="8.5" class="custom-slider">
+          </div>
+          <div class="chips-row" id="taxChips">
+            <button type="button" class="chip" data-tax="0">0%</button>
+            <button type="button" class="chip" data-tax="5">5%</button>
+            <button type="button" class="chip active" data-tax="8.5">8.5%</button>
+            <button type="button" class="chip" data-tax="10">10%</button>
+            <button type="button" class="chip" data-tax="18">18%</button>
+          </div>
+        </div>
+
+        <!-- Party Size (Number of People) -->
+        <div class="input-group">
+          <div class="input-label-row">
+            <label for="peopleInput">Party Size (Split between)</label>
+            <div class="stepper-wrapper">
+              <button type="button" class="btn-step" id="decreasePeopleBtn" aria-label="Decrease party size">-</button>
+              <input type="number" id="peopleInput" min="1" max="100" step="1" value="3">
+              <button type="button" class="btn-step" id="increasePeopleBtn" aria-label="Increase party size">+</button>
+            </div>
+          </div>
+          <div class="slider-wrapper">
+            <input type="range" id="peopleSlider" min="1" max="30" step="1" value="3" class="custom-slider">
+          </div>
+        </div>
+
+        <!-- Optional Note / Tag -->
+        <div class="input-group">
+          <div class="input-label-row">
+            <label for="billNote">Note / Occasion (Optional)</label>
+          </div>
+          <input type="text" id="billNote" class="text-input" placeholder="e.g. Saturday Team Dinner, Joe's Pizza">
+        </div>
+      </section>
+
+      <!-- Right Column: Live Output & Summary -->
+      <section class="card output-card">
+        <!-- Hero: Per Person Share -->
+        <div class="hero-share-card">
+          <span class="hero-label">Per Person Owed</span>
+          <div class="hero-amount-row">
+            <span class="hero-currency" id="heroCurrencySymbol">$</span>
+            <span class="hero-value" id="perPersonAmount">41.17</span>
+          </div>
+          <div class="hero-subtitle" id="heroSubtitle">Split equally among 3 people</div>
+        </div>
+
+        <!-- Breakdown List -->
+        <div class="breakdown-container">
+          <div class="breakdown-row">
+            <span class="breakdown-label">Subtotal</span>
+            <span class="breakdown-value" id="displaySubtotal">$100.00</span>
+          </div>
+          <div class="breakdown-row">
+            <span class="breakdown-label">
+              Tax (<span id="displayTaxRate">8.5</span>%)
+            </span>
+            <span class="breakdown-value" id="displayTaxAmount">$8.50</span>
+          </div>
+          <div class="breakdown-row">
+            <span class="breakdown-label">
+              Tip (<span id="displayTipRate">15</span>%)
+            </span>
+            <span class="breakdown-value" id="displayTipAmount">$15.00</span>
+          </div>
+          <div class="breakdown-divider"></div>
+          <div class="breakdown-row grand-total-row">
+            <span class="breakdown-label">Grand Total</span>
+            <span class="breakdown-value" id="displayGrandTotal">$123.50</span>
+          </div>
+        </div>
+
+        <!-- Fair Penny Rounding Inspector Card -->
+        <div class="rounding-card" id="roundingCard">
+          <div class="rounding-header">
+            <span class="rounding-icon">⚖️</span>
+            <h4>Fair Penny Rounding Breakdown</h4>
+          </div>
+          <div class="rounding-details" id="roundingDetails">
+            <!-- Dynamically populated by JS -->
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons-group">
+          <button type="button" class="btn btn-primary" id="saveHistoryBtn">
+            💾 Save to History
+          </button>
+          <button type="button" class="btn btn-secondary" id="copySummaryBtn">
+            📋 Copy Summary
+          </button>
+          <button type="button" class="btn btn-ghost" id="resetBtn">
+            🔄 Reset
+          </button>
+        </div>
+        <div class="copy-feedback" id="copyFeedback">✓ Summary copied to clipboard!</div>
+      </section>
+    </main>
+
+    <!-- History Section -->
+    <section class="card history-card" id="historySection">
+      <div class="history-header">
+        <div class="history-title-group">
+          <h2 class="card-title">Saved History</h2>
+          <span class="history-count-badge" id="historyCountBadge">0 saved</span>
+        </div>
+        <button type="button" class="btn-clear-all" id="clearAllHistoryBtn" title="Clear all history">
+          🗑️ Clear All
+        </button>
+      </div>
+
+      <div class="history-list" id="historyList">
+        <div class="empty-history-state" id="emptyHistoryState">
+          <div class="empty-icon">📂</div>
+          <p>No saved splits yet</p>
+          <span>Calculate a bill and click "Save to History"</span>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
