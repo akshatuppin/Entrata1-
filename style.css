@@ -386,6 +386,48 @@ input[type="number"] {
   box-shadow: 0 2px 8px rgba(79, 70, 229, 0.4);
 }
 
+/* Rounding Options Toggle */
+.rounding-options-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  background: var(--input-bg);
+  padding: 0.3rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--card-border);
+}
+
+.toggle-option {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.toggle-option input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.toggle-option span {
+  width: 100%;
+  text-align: center;
+  padding: 0.45rem 0.5rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  transition: var(--transition);
+}
+
+.toggle-option input:checked + span {
+  background: var(--primary);
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.35);
+}
+
 /* Right Output Card */
 .output-card {
   display: flex;
@@ -486,9 +528,9 @@ input[type="number"] {
 /* Rounding Inspector Card */
 .rounding-card {
   background: rgba(15, 23, 42, 0.8);
-  border: 1px solid rgba(245, 158, 11, 0.2);
+  border: 1px solid rgba(245, 158, 11, 0.25);
   border-radius: var(--radius-md);
-  padding: 0.9rem 1.1rem;
+  padding: 0.95rem 1.15rem;
   font-size: 0.85rem;
 }
 
@@ -519,6 +561,37 @@ input[type="number"] {
   font-size: 0.75rem;
   font-weight: 600;
   margin-top: 0.35rem;
+}
+
+.individual-payers-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.65rem;
+  padding-top: 0.65rem;
+  border-top: 1px dashed rgba(255, 255, 255, 0.08);
+}
+
+.payer-pill {
+  background: rgba(30, 41, 59, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.76rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.payer-pill.extra-cent {
+  border-color: rgba(245, 158, 11, 0.4);
+  background: rgba(245, 158, 11, 0.08);
+  color: #fef08a;
+}
+
+.payer-pill strong {
+  color: #fff;
 }
 
 /* Action buttons */

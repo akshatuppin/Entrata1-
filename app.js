@@ -1,7 +1,7 @@
 ﻿/**
  * Smart Split Bill & Fair Penny Calculator
  * Handles real-time calculations, bidirectional slider-input synchronization,
- * penny-rounding discrepancy distribution, and localStorage history.
+ * penny-rounding discrepancy distribution, round-up options, and localStorage history.
  */
 
 // State Object
@@ -11,6 +11,7 @@ const state = {
   tipPercent: 15.0,
   taxPercent: 8.5,
   partySize: 3,
+  roundingMode: 'exact', // 'exact' or 'roundUpDollar'
   note: '',
   history: []
 };
@@ -38,6 +39,7 @@ const elements = {
   decreasePeopleBtn: document.getElementById('decreasePeopleBtn'),
   increasePeopleBtn: document.getElementById('increasePeopleBtn'),
   
+  roundingRadios: document.querySelectorAll('input[name="roundingMode"]'),
   billNote: document.getElementById('billNote'),
   
   // Outputs
@@ -50,8 +52,9 @@ const elements = {
   displayTipAmount: document.getElementById('displayTipAmount'),
   displayGrandTotal: document.getElementById('displayGrandTotal'),
   
-  // Rounding Card
+  // Rounding Inspector
   roundingDetails: document.getElementById('roundingDetails'),
+  individualPayersGrid: document.getElementById('individualPayersGrid'),
   
   // Actions
   saveHistoryBtn: document.getElementById('saveHistoryBtn'),
@@ -204,6 +207,14 @@ function attachEventListeners() {
     calculateAndRender();
   });
 
+  // Rounding Mode Toggle
+  elements.roundingRadios.forEach(radio => {
+    radio.addEventListener('change', (e) => {
+      state.roundingMode = e.target.value;
+      calculateAndRender();
+    });
+  });
+
   // Note Input
   elements.billNote.addEventListener('input', (e) => {
     state.note = e.target.value;
@@ -229,6 +240,11 @@ function syncAllInputs() {
   elements.taxSlider.value = Math.min(30, state.taxPercent);
   syncPeopleControls();
   elements.billNote.value = state.note;
+  
+  elements.roundingRadios.forEach(radio => {
+    radio.checked = radio.value === state.roundingMode;
+  });
+
   updateChipActiveState(elements.tipChips, state.tipPercent, 'tip');
   updateChipActiveState(elements.taxChips, state.taxPercent, 'tax');
 }
@@ -251,13 +267,25 @@ function calculateAndRender() {
   const taxPercent = Math.max(0, state.taxPercent);
   const partySize = Math.max(1, state.partySize);
 
-  // Calculations
+  // Base Calculations
   const taxAmount = bill * (taxPercent / 100);
-  const tipAmount = bill * (tipPercent / 100);
-  const grandTotal = bill + taxAmount + tipAmount;
+  let tipAmount = bill * (tipPercent / 100);
+  let grandTotalRaw = bill + taxAmount + tipAmount;
+  let totalCents = Math.round(grandTotalRaw * 100);
 
-  // Exact Division & Penny Distribution
-  const totalCents = Math.round(grandTotal * 100);
+  // If Round Up Whole Dollar mode is active
+  if (state.roundingMode === 'roundUpDollar' && partySize > 0) {
+    const rawPerPerson = totalCents / partySize / 100;
+    const roundedUpPerPerson = Math.ceil(rawPerPerson);
+    const newTotalCents = roundedUpPerPerson * partySize * 100;
+    const extraTipCents = newTotalCents - totalCents;
+    
+    totalCents = newTotalCents;
+    tipAmount += (extraTipCents / 100);
+    grandTotalRaw = newTotalCents / 100;
+  }
+
+  const grandTotal = totalCents / 100;
   const baseCentsPerPerson = Math.floor(totalCents / partySize);
   const remainderCents = totalCents % partySize;
 
@@ -272,7 +300,7 @@ function calculateAndRender() {
   elements.displayTipAmount.textContent = `${state.currency}${tipAmount.toFixed(2)}`;
   elements.displayGrandTotal.textContent = `${state.currency}${grandTotal.toFixed(2)}`;
 
-  // Hero Display: If uneven cents exist, show base share or higher share clearly
+  // Hero Display
   if (remainderCents === 0) {
     elements.perPersonAmount.textContent = baseShare.toFixed(2);
     elements.heroSubtitle.textContent = `Split evenly among ${partySize} ${partySize === 1 ? 'person' : 'people'}`;
@@ -281,7 +309,7 @@ function calculateAndRender() {
     elements.heroSubtitle.textContent = `${remainderCents} ${remainderCents === 1 ? 'person pays' : 'people pay'} ${state.currency}${higherShare.toFixed(2)} & ${partySize - remainderCents} pay ${state.currency}${baseShare.toFixed(2)}`;
   }
 
-  // Render Rounding Explanation
+  // Render Rounding Explanation & Individual Payer Grid
   renderRoundingExplanation(grandTotal, partySize, baseShare, higherShare, remainderCents);
 }
 
@@ -291,12 +319,18 @@ function renderRoundingExplanation(grandTotal, partySize, baseShare, higherShare
       <p>Single payer: Full bill of <strong>${state.currency}${grandTotal.toFixed(2)}</strong>.</p>
       <div class="rounding-badge">✓ Exact match (no split discrepancy)</div>
     `;
+    elements.individualPayersGrid.innerHTML = '';
     return;
   }
 
   const rawPerPerson = (grandTotal / partySize).toFixed(4);
 
-  if (remainderCents === 0) {
+  if (state.roundingMode === 'roundUpDollar') {
+    elements.roundingDetails.innerHTML = `
+      <p>Convenience Round Up: Each person pays <strong>${state.currency}${baseShare.toFixed(2)}</strong>.</p>
+      <div class="rounding-badge">✨ Whole-dollar split with surplus added to tip</div>
+    `;
+  } else if (remainderCents === 0) {
     elements.roundingDetails.innerHTML = `
       <p>Exact division: <strong>${state.currency}${grandTotal.toFixed(2)} ÷ ${partySize} = ${state.currency}${baseShare.toFixed(2)}</strong> per person.</p>
       <div class="rounding-badge">✓ Perfect Even Split (0¢ discrepancy)</div>
@@ -313,6 +347,26 @@ function renderRoundingExplanation(grandTotal, partySize, baseShare, higherShare
       </p>
       <div class="rounding-badge">⚖️ Sums exactly to ${state.currency}${grandTotal.toFixed(2)} with 0 lost cents</div>
     `;
+  }
+
+  // Render individual payer badges for up to 12 people
+  if (partySize <= 12) {
+    let html = '';
+    for (let i = 1; i <= partySize; i++) {
+      const isExtra = (i <= remainderCents);
+      const amount = isExtra ? higherShare : baseShare;
+      html += `
+        <div class="payer-pill ${isExtra ? 'extra-cent' : ''}">
+          <span>Person ${i}:</span>
+          <strong>${state.currency}${amount.toFixed(2)}</strong>
+          ${isExtra ? '<span>(+1¢)</span>' : ''}
+        </div>
+      `;
+    }
+    elements.individualPayersGrid.innerHTML = html;
+    elements.individualPayersGrid.style.display = 'flex';
+  } else {
+    elements.individualPayersGrid.style.display = 'none';
   }
 }
 
@@ -349,7 +403,7 @@ function handleSaveToHistory() {
   saveHistoryToStorage();
   renderHistoryList();
 
-  // Pulse animation on button
+  // Button feedback
   elements.saveHistoryBtn.textContent = '✓ Saved!';
   setTimeout(() => {
     elements.saveHistoryBtn.textContent = '💾 Save to History';
@@ -449,6 +503,7 @@ function handleReset() {
   state.tipPercent = 15.0;
   state.taxPercent = 8.5;
   state.partySize = 3;
+  state.roundingMode = 'exact';
   state.note = '';
   syncAllInputs();
   calculateAndRender();

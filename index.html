@@ -6,7 +6,7 @@
   <title>Smart Split Bill & Tip Calculator</title>
   <link rel="stylesheet" href="style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -110,6 +110,23 @@
           </div>
         </div>
 
+        <!-- Rounding Mode & Options -->
+        <div class="input-group rounding-mode-group">
+          <div class="input-label-row">
+            <label>Rounding Options</label>
+          </div>
+          <div class="rounding-options-toggle">
+            <label class="toggle-option">
+              <input type="radio" name="roundingMode" value="exact" checked id="modeExact">
+              <span>⚖️ Fair Exact Penny</span>
+            </label>
+            <label class="toggle-option">
+              <input type="radio" name="roundingMode" value="roundUpDollar" id="modeRoundUp">
+              <span>⬆️ Round Up ($1)</span>
+            </label>
+          </div>
+        </div>
+
         <!-- Optional Note / Tag -->
         <div class="input-group">
           <div class="input-label-row">
@@ -164,6 +181,9 @@
           </div>
           <div class="rounding-details" id="roundingDetails">
             <!-- Dynamically populated by JS -->
+          </div>
+          <div class="individual-payers-grid" id="individualPayersGrid">
+            <!-- Individual person chips dynamically populated -->
           </div>
         </div>
 
