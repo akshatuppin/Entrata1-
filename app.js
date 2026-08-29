@@ -13,6 +13,7 @@ const state = {
   partySize: 3,
   roundingMode: 'exact', // 'exact' or 'roundUpDollar'
   note: '',
+  historySearchQuery: '',
   history: []
 };
 
@@ -64,6 +65,8 @@ const elements = {
   
   // History
   historyCountBadge: document.getElementById('historyCountBadge'),
+  historySearchInput: document.getElementById('historySearchInput'),
+  exportHistoryBtn: document.getElementById('exportHistoryBtn'),
   clearAllHistoryBtn: document.getElementById('clearAllHistoryBtn'),
   historyList: document.getElementById('historyList'),
   emptyHistoryState: document.getElementById('emptyHistoryState')
@@ -219,6 +222,19 @@ function attachEventListeners() {
   elements.billNote.addEventListener('input', (e) => {
     state.note = e.target.value;
   });
+
+  // History Search & Filter
+  if (elements.historySearchInput) {
+    elements.historySearchInput.addEventListener('input', (e) => {
+      state.historySearchQuery = e.target.value.toLowerCase().trim();
+      renderHistoryList();
+    });
+  }
+
+  // Export History
+  if (elements.exportHistoryBtn) {
+    elements.exportHistoryBtn.addEventListener('click', handleExportHistory);
+  }
 
   // Action Buttons
   elements.saveHistoryBtn.addEventListener('click', handleSaveToHistory);
@@ -411,10 +427,19 @@ function handleSaveToHistory() {
 }
 
 function renderHistoryList() {
-  const count = state.history.length;
-  elements.historyCountBadge.textContent = `${count} ${count === 1 ? 'saved' : 'saved'}`;
+  const totalCount = state.history.length;
+  elements.historyCountBadge.textContent = `${totalCount} saved`;
 
-  if (count === 0) {
+  const query = state.historySearchQuery;
+  const filtered = query
+    ? state.history.filter(h => 
+        (h.note && h.note.toLowerCase().includes(query)) ||
+        (h.grandTotal && h.grandTotal.toString().includes(query)) ||
+        (h.perPerson && h.perPerson.toFixed(2).includes(query))
+      )
+    : state.history;
+
+  if (totalCount === 0) {
     elements.historyList.innerHTML = `
       <div class="empty-history-state">
         <div class="empty-icon">📂</div>
@@ -425,7 +450,18 @@ function renderHistoryList() {
     return;
   }
 
-  elements.historyList.innerHTML = state.history.map(item => {
+  if (filtered.length === 0) {
+    elements.historyList.innerHTML = `
+      <div class="empty-history-state">
+        <div class="empty-icon">🔍</div>
+        <p>No matching history entries found</p>
+        <span>Try searching for another keyword or amount</span>
+      </div>
+    `;
+    return;
+  }
+
+  elements.historyList.innerHTML = filtered.map(item => {
     const dateStr = new Date(item.timestamp).toLocaleDateString(undefined, {
       month: 'short',
       day: 'numeric',
@@ -459,6 +495,20 @@ function renderHistoryList() {
       </div>
     `;
   }).join('');
+}
+
+function handleExportHistory() {
+  if (state.history.length === 0) {
+    alert('No history records to export.');
+    return;
+  }
+  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state.history, null, 2));
+  const downloadAnchor = document.createElement('a');
+  downloadAnchor.setAttribute("href", dataStr);
+  downloadAnchor.setAttribute("download", `split_bill_history_${Date.now()}.json`);
+  document.body.appendChild(downloadAnchor);
+  downloadAnchor.click();
+  downloadAnchor.remove();
 }
 
 // Window global helper functions for inline history buttons

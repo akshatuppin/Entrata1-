@@ -6,7 +6,7 @@
   <title>Smart Split Bill & Tip Calculator</title>
   <link rel="stylesheet" href="style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -113,7 +113,7 @@
         <!-- Rounding Mode & Options -->
         <div class="input-group rounding-mode-group">
           <div class="input-label-row">
-            <label>Rounding Options</label>
+            <label>Rounding Strategy</label>
           </div>
           <div class="rounding-options-toggle">
             <label class="toggle-option">
@@ -210,9 +210,15 @@
           <h2 class="card-title">Saved History</h2>
           <span class="history-count-badge" id="historyCountBadge">0 saved</span>
         </div>
-        <button type="button" class="btn-clear-all" id="clearAllHistoryBtn" title="Clear all history">
-          🗑️ Clear All
-        </button>
+        <div class="history-header-actions">
+          <input type="text" id="historySearchInput" class="history-search" placeholder="🔍 Filter saved...">
+          <button type="button" class="btn-export" id="exportHistoryBtn" title="Export as JSON">
+            📤 Export
+          </button>
+          <button type="button" class="btn-clear-all" id="clearAllHistoryBtn" title="Clear all history">
+            🗑️ Clear All
+          </button>
+        </div>
       </div>
 
       <div class="history-list" id="historyList">

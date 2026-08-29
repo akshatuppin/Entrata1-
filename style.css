@@ -672,6 +672,8 @@ input[type="number"] {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
 }
 
 .history-title-group {
@@ -692,6 +694,48 @@ input[type="number"] {
   font-weight: 600;
   padding: 0.2rem 0.55rem;
   border-radius: 12px;
+}
+
+.history-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.history-search {
+  background: var(--input-bg);
+  border: 1px solid var(--card-border);
+  color: var(--text-main);
+  font-family: inherit;
+  font-size: 0.82rem;
+  padding: 0.35rem 0.65rem;
+  border-radius: var(--radius-sm);
+  width: 150px;
+  outline: none;
+  transition: var(--transition);
+}
+
+.history-search:focus {
+  border-color: var(--primary);
+  width: 180px;
+}
+
+.btn-export {
+  background: var(--input-bg);
+  border: 1px solid var(--card-border);
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.35rem 0.65rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.btn-export:hover {
+  border-color: var(--primary);
+  color: #fff;
 }
 
 .btn-clear-all {
