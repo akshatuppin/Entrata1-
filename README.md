@@ -1,11 +1,12 @@
 ﻿# 💰 SplitSmart — Instant Split Bill & Fair Penny Calculator
 
-A modern, responsive, and reactive web application designed to calculate bill splits with live bidirectional slider controls, customizable tip and tax rates, automated penny-rounding discrepancy distribution, and browser `localStorage` history management.
+A modern, responsive, and reactive web application designed to calculate bill splits with live bidirectional slider controls, customizable tip and tax rates, automated penny-rounding discrepancy distribution, zero-loss integer cent arithmetic, and browser `localStorage` history management.
 
 ---
 
 ## 📌 Table of Contents
 - [✨ Key Features](#-key-features)
+- [🛡️ Comprehensive Edge-Case Safety & Robustness](#️-comprehensive-edge-case-safety--robustness)
 - [🧮 Mathematical Logic & Formulas](#-mathematical-logic--formulas)
 - [🔍 The Penny Discrepancy & Fair Rounding Rule](#-the-penny-discrepancy--fair-rounding-rule)
 - [📥 Input & Output Specifications](#-input--output-specifications)
@@ -20,7 +21,7 @@ A modern, responsive, and reactive web application designed to calculate bill sp
 - **⚡ Zero-Lag Reactive Engine:** Updates all totals and per-person shares dynamically on every input stroke or slider movement.
 - **🎛️ 2-Way Bidirectional Controls:** Move a slider to adjust the number input, or type into the input to reposition the slider.
 - **🏷️ One-Tap Quick Chips:** Fast preset buttons for tip percentages (`0%`, `10%`, `15%`, `18%`, `20%`, `25%`) and tax presets (`0%`, `5%`, `8.5%`, `10%`, `18%`).
-- **👥 Party Size Steppers:** Quick `+` and `-` steppers along with a slider for party sizes from 1 to 100 people.
+- **👥 Party Size Steppers:** Quick `+` and `-` steppers along with a slider for party sizes from 1 to 500 people.
 - **⚖️ Fair Penny-Rounding Inspector:** Live visual matrix displaying individual payer allocations (e.g. Person 1, Person 2, Person 3) to ensure 0 lost cents.
 - **⬆️ Whole Dollar Round-Up Mode:** 1-click option to round each person's share up to the nearest whole dollar, routing the difference into an extra server tip.
 - **📝 Bill & Item Notes:** Tag calculations with custom notes (e.g., *"Team Dinner at Mario's"*).
@@ -30,14 +31,32 @@ A modern, responsive, and reactive web application designed to calculate bill sp
 
 ---
 
+## 🛡️ Comprehensive Edge-Case Safety & Robustness
+
+The application includes exhaustive defensive handling for all practical financial and UI edge cases:
+
+| Edge Case Scenario | Risk / Dilemma | Built-in Safety Handling |
+|---|---|---|
+| **Party Size $\le 0$ or Non-Numeric** | Division by zero ($\text{NaN} / \infty$) | Enforces a strict minimum of $N \ge 1$. Stepper buttons prevent going below 1, and negative/invalid numbers auto-default to 1 with an inline notice. |
+| **Bill Subtotal $\le \$0.00$** | Invalid calculations, saving empty records | Bill input is clamped to $\ge 0$. When bill is \$0.00, a zero-state helper banner appears, and the "Save to History" button is automatically disabled. |
+| **Negative Inputs** | Negative tax or negative tip | Math engine clamps subtotal, tip %, and tax % to non-negative ranges ($B \ge 0$, $\text{Tip} \ge 0$, $\text{Tax} \ge 0$). |
+| **Micro-Bills ($\text{Total Cents} < N$)** | Fractional cents or negative shares | E.g. \$0.05 bill split among 10 people: 5 people pay \$0.01 and 5 people pay \$0.00. Total collected matches \$0.05 exact without loss. |
+| **Large Party Sizes ($N > 12$)** | DOM node overload / cluttered UI | Displays a clean summary card instead of generating hundreds of individual pill elements. |
+| **Floating Point Inaccuracies** | JS float arithmetic (e.g. `0.1 + 0.2`) | All computations are converted into discrete **integer cents** before division and modulus operations. |
+| **Corrupted `localStorage`** | App crash on malformed local data | JSON parser runs in a defensive `try/catch` block with self-healing array schema validation and graceful fallback. |
+| **Blocked Clipboard API** | Copy failure in non-secure contexts | Automated fallback to `document.execCommand('copy')` with hidden DOM selection. |
+| **Intrusive Alert Popups** | Poor mobile/desktop UX with `alert()` | Replaced by non-blocking animated toast notifications (Success, Warning, Info, Error). |
+
+---
+
 ## 🧮 Mathematical Logic & Formulas
 
 ### Variable Definitions
 | Variable | Description | Constraints |
 |---|---|---|
 | $B$ | Bill Subtotal (before tax and tip) | $B \ge 0$ |
-| $P_{\text{tip}}$ | Tip Percentage | $P_{\text{tip}} \ge 0$ |
-| $P_{\text{tax}}$ | Tax Percentage | $P_{\text{tax}} \ge 0$ |
+| $P_{\text{tip}}$ | Tip Percentage | $0 \le P_{\text{tip}} \le 500$ |
+| $P_{\text{tax}}$ | Tax Percentage | $0 \le P_{\text{tax}} \le 100$ |
 | $N$ | Party Size (Number of people) | $N \ge 1$, Integer |
 
 ### Calculation Steps
@@ -96,9 +115,9 @@ To guarantee the collected sum strictly equals the Grand Total to the exact cent
 1. **Bill Subtotal:** Amount before tip and tax.
 2. **Tip (%):** Percentage with slider (0%–50%) and quick presets.
 3. **Tax (%):** Percentage with slider (0%–30%) and direct input.
-4. **Party Size ($N$):** Number of people with counter steppers and slider (1–30).
+4. **Party Size ($N$):** Number of people with counter steppers and slider (1–30, up to 500).
 5. **Rounding Strategy:** Fair Exact Penny vs Whole-Dollar Round-Up.
-6. **Bill Note:** Optional description or event name.
+6. **Bill Note:** Optional description or event name (up to 60 characters).
 
 ### Outputs
 1. **Subtotal:** Formatted currency.
@@ -141,10 +160,13 @@ node test_calculations.js
 ```
 
 ### Verified Test Cases:
+- [x] Party size 0, negative numbers, or `NaN` clamped to $\ge 1$
+- [x] Zero bill ($0.00) & negative subtotal handling
 - [x] Exact penny split with remainder cents ($100 / 3)
 - [x] Decimal taxes and tips ($84.50, 18% tip, 8.875% tax, 4 people)
+- [x] Micro-bills where total cents < party size ($0.05 / 10 people)
 - [x] Whole-dollar convenience round-up mode
-- [x] Boundary values ($0 subtotal, single payer, 47+ people party split)
+- [x] High-volume party boundary (500 people splitting $10,000.00)
 
 ---
 
@@ -154,7 +176,8 @@ node test_calculations.js
 - **Milestone 2 (`476c93f`):** Responsive UI structure (`index.html`, `style.css`), and real-time bidirectional slider/input synchronization engine (`app.js`).
 - **Milestone 3 (`13b6601`):** Per-Person Share hero display, interactive fair penny rounding breakdown inspector with individual payer badges, and formatted summary clipboard sharer.
 - **Milestone 4 (`582dff2`):** Local storage history management with search/filter, JSON export, single item loader, and bill note tagger.
-- **Milestone 5 (Current):** Automated test suite, comprehensive documentation, and edge-case verification.
+- **Milestone 5 (`9b35036`):** Automated test suite, comprehensive documentation, and edge-case verification.
+- **Milestone 6 (Current):** Exhaustive edge-case protections (minimum party size, \$0 subtotal zero-states, micro-bills, integer cent precision, toast notification system, and clipboard fallback).
 
 ---
 

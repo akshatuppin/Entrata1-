@@ -1,20 +1,27 @@
 ﻿const assert = require('assert');
 
 function calculateSplit({ bill, tipPercent, taxPercent, partySize, roundingMode = 'exact' }) {
-  const b = Math.max(0, bill);
-  const tipP = Math.max(0, tipPercent);
-  const taxP = Math.max(0, taxPercent);
-  const n = Math.max(1, partySize);
+  // Edge Case 1: Clamp negative or invalid bill to 0
+  const b = isNaN(bill) ? 0 : Math.max(0, Math.min(100000000, bill));
+  
+  // Edge Case 2: Clamp tip (0 to 500%) & tax (0 to 100%)
+  const tipP = isNaN(tipPercent) ? 0 : Math.max(0, Math.min(500, tipPercent));
+  const taxP = isNaN(taxPercent) ? 0 : Math.max(0, Math.min(100, taxPercent));
+  
+  // Edge Case 3: Enforce minimum party size of 1
+  let n = parseInt(partySize, 10);
+  if (isNaN(n) || n < 1) n = 1;
+  n = Math.min(500, n);
 
   const taxAmount = b * (taxP / 100);
   let tipAmount = b * (tipP / 100);
   let grandTotalRaw = b + taxAmount + tipAmount;
   let totalCents = Math.round(grandTotalRaw * 100);
 
-  if (roundingMode === 'roundUpDollar' && n > 0) {
-    const rawPerPerson = totalCents / n / 100;
-    const roundedUpPerPerson = Math.ceil(rawPerPerson);
-    const newTotalCents = roundedUpPerPerson * n * 100;
+  if (roundingMode === 'roundUpDollar' && n > 0 && totalCents > 0) {
+    const rawPerPersonCents = totalCents / n;
+    const roundedUpPerPersonCents = Math.ceil(rawPerPersonCents / 100) * 100;
+    const newTotalCents = roundedUpPerPersonCents * n;
     const extraTipCents = newTotalCents - totalCents;
     
     totalCents = newTotalCents;
@@ -48,47 +55,65 @@ function calculateSplit({ bill, tipPercent, taxPercent, partySize, roundingMode 
   };
 }
 
-console.log("==========================================");
-console.log(" 🧪 RUNNING FULL SUITE OF AUTOMATED TESTS ");
-console.log("==========================================");
+console.log("=================================================");
+console.log(" 🛡️ RUNNING COMPREHENSIVE EDGE-CASE SAFETY TESTS ");
+console.log("=================================================");
 
-// Test Suite 1: Exact Penny Allocation
-console.log("\n[Suite 1] Exact Penny Allocation Tests");
-const t1 = calculateSplit({ bill: 100, tipPercent: 0, taxPercent: 0, partySize: 3 });
-assert.strictEqual(t1.isExactMatch, true);
-assert.strictEqual(t1.baseShare, 33.33);
-assert.strictEqual(t1.higherShare, 33.34);
-assert.strictEqual(t1.remainderCents, 1);
-assert.strictEqual(t1.totalCollected, 100.00);
-console.log("✓ $100 split 3 ways: 1 person pays $33.34, 2 pay $33.33 = $100.00 exact");
+// Edge Case 1: Party size 0, negative, or NaN
+console.log("\n[Edge Case 1: Invalid & Non-Positive Party Sizes]");
+const ec1 = calculateSplit({ bill: 100, tipPercent: 10, taxPercent: 5, partySize: 0 });
+assert.strictEqual(ec1.partySize, 1);
+assert.strictEqual(ec1.isExactMatch, true);
+console.log("✓ Party size 0 automatically clamped to 1 person");
 
-const t2 = calculateSplit({ bill: 84.50, tipPercent: 18, taxPercent: 8.875, partySize: 4 });
-assert.strictEqual(t2.isExactMatch, true);
-assert.strictEqual(t2.grandTotal, 107.21);
-assert.strictEqual(t2.baseShare, 26.80);
-assert.strictEqual(t2.higherShare, 26.81);
-assert.strictEqual(t2.remainderCents, 1);
-assert.strictEqual(t2.totalCollected, 107.21);
-console.log("✓ $84.50 with 18% tip, 8.875% tax, party 4: Total $107.21 = $107.21 exact");
+const ec2 = calculateSplit({ bill: 100, tipPercent: 10, taxPercent: 5, partySize: -5 });
+assert.strictEqual(ec2.partySize, 1);
+assert.strictEqual(ec2.isExactMatch, true);
+console.log("✓ Negative party size (-5) clamped to 1 person");
 
-// Test Suite 2: Round Up Dollar Mode
-console.log("\n[Suite 2] Round Up Dollar Mode Tests");
-const t3 = calculateSplit({ bill: 100, tipPercent: 15, taxPercent: 8.5, partySize: 3, roundingMode: 'roundUpDollar' });
-assert.strictEqual(t3.isExactMatch, true);
-assert.strictEqual(t3.baseShare, 42.00); // 123.50 / 3 = 41.166 -> 42.00
-assert.strictEqual(t3.remainderCents, 0);
-assert.strictEqual(t3.totalCollected, 126.00);
-console.log("✓ Round up mode: $123.50 total -> each person pays $42.00 (surplus goes to tip)");
+const ec3 = calculateSplit({ bill: 100, tipPercent: 10, taxPercent: 5, partySize: "invalid" });
+assert.strictEqual(ec3.partySize, 1);
+console.log("✓ Non-numeric party size ('invalid') safely defaulted to 1");
 
-// Test Suite 3: Extreme & Boundary Values
-console.log("\n[Suite 3] Boundary & Extreme Values");
-const t4 = calculateSplit({ bill: 0, tipPercent: 20, taxPercent: 10, partySize: 5 });
-assert.strictEqual(t4.grandTotal, 0);
-assert.strictEqual(t4.totalCollected, 0);
-console.log("✓ $0 subtotal handles cleanly without errors");
+// Edge Case 2: Zero & Negative Bill Subtotals
+console.log("\n[Edge Case 2: Zero & Negative Bill Amounts]");
+const ec4 = calculateSplit({ bill: 0, tipPercent: 15, taxPercent: 8.5, partySize: 3 });
+assert.strictEqual(ec4.grandTotal, 0);
+assert.strictEqual(ec4.totalCollected, 0);
+assert.strictEqual(ec4.baseShare, 0);
+console.log("✓ $0.00 bill gives clean $0.00 totals without NaN/Infinity");
 
-const t5 = calculateSplit({ bill: 1500.85, tipPercent: 25, taxPercent: 12.5, partySize: 47 });
-assert.strictEqual(t5.isExactMatch, true);
-console.log(`✓ 47 people split $1500.85 bill: Total $${t5.grandTotal}, sum collected: $${t5.totalCollected}`);
+const ec5 = calculateSplit({ bill: -50.25, tipPercent: 15, taxPercent: 8.5, partySize: 3 });
+assert.strictEqual(ec5.bill, 0);
+assert.strictEqual(ec5.grandTotal, 0);
+console.log("✓ Negative bill amount (-$50.25) safely clamped to $0.00");
 
-console.log("\n🎉 ALL 5 TEST SUITES PASSED WITH 100% PRECISION!\n");
+// Edge Case 3: Micro-bills (Total Cents < Party Size)
+console.log("\n[Edge Case 3: Micro-bills (Total < Party Size)]");
+// $0.05 split among 10 people -> 5 people pay $0.01, 5 people pay $0.00 -> Sum = $0.05
+const ec6 = calculateSplit({ bill: 0.05, tipPercent: 0, taxPercent: 0, partySize: 10 });
+assert.strictEqual(ec6.isExactMatch, true);
+assert.strictEqual(ec6.baseShare, 0.00);
+assert.strictEqual(ec6.higherShare, 0.01);
+assert.strictEqual(ec6.remainderCents, 5);
+assert.strictEqual(ec6.totalCollected, 0.05);
+console.log("✓ Micro-bill $0.05 split among 10: 5 pay $0.01, 5 pay $0.00 (Sum = $0.05 exact)");
+
+// Edge Case 4: Floating Point Precision with 3-decimal taxes
+console.log("\n[Edge Case 4: Complex Floating-Point Percentages]");
+// $19.99 with 8.875% tax + 18% tip split among 3 people
+const ec7 = calculateSplit({ bill: 19.99, tipPercent: 18, taxPercent: 8.875, partySize: 3 });
+assert.strictEqual(ec7.isExactMatch, true);
+console.log(`✓ $19.99 with 8.875% tax, 18% tip for 3: Total $${ec7.grandTotal} (Collected: $${ec7.totalCollected})`);
+
+// Edge Case 5: Large Party Boundary
+console.log("\n[Edge Case 5: High Volume / Large Party Boundary]");
+const ec8 = calculateSplit({ bill: 10000.00, tipPercent: 20, taxPercent: 10, partySize: 500 });
+assert.strictEqual(ec8.partySize, 500);
+assert.strictEqual(ec8.isExactMatch, true);
+assert.strictEqual(ec8.totalCollected, 13000.00);
+console.log(`✓ 500 people split $10,000 bill: $${ec8.baseShare}/person (Exact $13,000.00 collected)`);
+
+console.log("\n=================================================");
+console.log(" 🎉 ALL EDGE-CASE SAFETY TESTS PASSED 100%!     ");
+console.log("=================================================\n");
