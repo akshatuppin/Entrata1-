@@ -31,3 +31,9 @@ This document records the user prompts and requirements provided for the develop
 ### Prompt 5: Comprehensive Edge Cases & Error Handling Robustness
 > **User:**
 > "Also at the last just manage all the edge cases that must be possible for this type of poject. example there should me more than one person and the total should be greater thean zero and all might possible. Do this check by your own knowledge also add this prompt in my prompt.md and if need in readme file"
+
+---
+
+### Prompt 6: Execution Instructions & Local Run Guide
+> **User:**
+> "if i want to run this how can i and also add this runing the project step int the Redeme file and if needed in the prompt.md file of the main project"

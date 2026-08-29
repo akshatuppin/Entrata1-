@@ -6,6 +6,7 @@ A modern, responsive, and reactive web application designed to calculate bill sp
 
 ## 📌 Table of Contents
 - [✨ Key Features](#-key-features)
+- [🚀 How to Run the Project](#-how-to-run-the-project)
 - [🛡️ Comprehensive Edge-Case Safety & Robustness](#️-comprehensive-edge-case-safety--robustness)
 - [🧮 Mathematical Logic & Formulas](#-mathematical-logic--formulas)
 - [🔍 The Penny Discrepancy & Fair Rounding Rule](#-the-penny-discrepancy--fair-rounding-rule)
@@ -13,7 +14,7 @@ A modern, responsive, and reactive web application designed to calculate bill sp
 - [💾 Local Storage Architecture](#-local-storage-architecture)
 - [🧪 Automated Test Suite](#-automated-test-suite)
 - [🚀 Mini-Milestone Commit History](#-mini-milestone-commit-history)
-- [🛠️ Tech Stack & Getting Started](#️-tech-stack--getting-started)
+- [🛠️ Tech Stack](#️-tech-stack)
 
 ---
 
@@ -28,6 +29,64 @@ A modern, responsive, and reactive web application designed to calculate bill sp
 - **💾 Local History Management:** Save, filter/search, reload, delete, or export calculations as JSON directly in browser storage (`localStorage`).
 - **📋 One-Click Share Summary:** Formats complete split receipts into clean Markdown/text ready to paste into WhatsApp, Slack, or SMS.
 - **🌍 Multi-Currency Support:** Instant switching between `$`, `₹`, `€`, `£`, `C$`, and `A$`.
+
+---
+
+## 🚀 How to Run the Project
+
+This project is built with **zero external dependencies** and can be run immediately using any of the following methods:
+
+### Option 1: Direct File Open (Easiest — No Tools Needed)
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/akshatuppin/Entrata1-.git
+   cd Entrata1-
+   ```
+2. Simply double-click `index.html`, or right-click `index.html` $\rightarrow$ **Open with** $\rightarrow$ **Chrome / Edge / Firefox / Safari / Brave**.
+
+---
+
+### Option 2: VS Code Live Server Extension
+1. Open the project folder in VS Code.
+2. Install the **"Live Server"** extension (by Ritwick Dey).
+3. Right-click `index.html` $\rightarrow$ Click **"Open with Live Server"**.
+4. The app will automatically open in your default browser at `http://127.0.0.1:5500`.
+
+---
+
+### Option 3: Using Python Built-in HTTP Server
+If you have Python installed, run in your terminal:
+```bash
+# Python 3.x
+python -m http.server 3000
+```
+Then open your browser and navigate to:
+👉 `http://localhost:3000`
+
+---
+
+### Option 4: Using Node.js (`npx`)
+If you have Node.js installed, run:
+```bash
+npx serve .
+```
+Then open the displayed local URL (e.g., `http://localhost:3000`).
+
+---
+
+### Option 5: Running the Automated Test Suite
+To execute the automated mathematical edge-case validation test suite:
+```bash
+node test_calculations.js
+```
+Expected output:
+```
+=================================================
+ 🛡️ RUNNING COMPREHENSIVE EDGE-CASE SAFETY TESTS 
+=================================================
+...
+🎉 ALL EDGE-CASE SAFETY TESTS PASSED 100%!
+```
 
 ---
 
@@ -151,25 +210,6 @@ Calculations are persisted in browser memory using `localStorage` under the key 
 
 ---
 
-## 🧪 Automated Test Suite
-
-Run the automated mathematical edge-case validation test suite:
-
-```bash
-node test_calculations.js
-```
-
-### Verified Test Cases:
-- [x] Party size 0, negative numbers, or `NaN` clamped to $\ge 1$
-- [x] Zero bill ($0.00) & negative subtotal handling
-- [x] Exact penny split with remainder cents ($100 / 3)
-- [x] Decimal taxes and tips ($84.50, 18% tip, 8.875% tax, 4 people)
-- [x] Micro-bills where total cents < party size ($0.05 / 10 people)
-- [x] Whole-dollar convenience round-up mode
-- [x] High-volume party boundary (500 people splitting $10,000.00)
-
----
-
 ## 🚀 Mini-Milestone Commit History
 
 - **Milestone 1 (`e442b41`):** Logic specifications, setup, user prompt tracking (`prompts.md`), and comprehensive `README.md`.
@@ -177,17 +217,13 @@ node test_calculations.js
 - **Milestone 3 (`13b6601`):** Per-Person Share hero display, interactive fair penny rounding breakdown inspector with individual payer badges, and formatted summary clipboard sharer.
 - **Milestone 4 (`582dff2`):** Local storage history management with search/filter, JSON export, single item loader, and bill note tagger.
 - **Milestone 5 (`9b35036`):** Automated test suite, comprehensive documentation, and edge-case verification.
-- **Milestone 6 (Current):** Exhaustive edge-case protections (minimum party size, \$0 subtotal zero-states, micro-bills, integer cent precision, toast notification system, and clipboard fallback).
+- **Milestone 6 (`98fafb8`):** Exhaustive edge-case protections (minimum party size, \$0 subtotal zero-states, micro-bills, integer cent precision, toast notification system, and clipboard fallback).
+- **Milestone 7 (Current):** Quick-start execution guide across 5 running methods and updated prompt logs.
 
 ---
 
-## 🛠️ Tech Stack & Getting Started
+## 🛠️ Tech Stack
 
 - **Frontend:** Pure HTML5, Modern CSS (Glassmorphism & Card UI), Vanilla JavaScript (ES6+).
-- **Zero Dependencies:** No bundlers, npm dependencies, or build steps required.
-- **Run Locally:**
-  1. Clone this repository:
-     ```bash
-     git clone https://github.com/akshatuppin/Entrata1-.git
-     ```
-  2. Open `index.html` in any web browser.
+- **Testing:** Node.js Assertions (`test_calculations.js`).
+- **Zero Dependencies:** No bundlers, npm packages, or build steps required.
